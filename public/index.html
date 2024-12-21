@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
+    <link rel="stylesheet" href="./index.css" />
+    <title>Music Game</title>
+  </head>
+  <body>
+    <div id="canvas-conrainer">
+      <canvas id="game-canvas"></canvas>
+    </div>
+    <input type="file" accept="audio/*" style="display: none" id="songInput" />
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.10.2/gsap.min.js"
+      integrity="sha512-kVlGhj2qFy+KBCFuvjBJTGUMxbdqJKs4yK2jh0e0VPhWUPiPC87bzm4THmaaIee3Oj7j6sDpTTgm2EPPiESqBg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script src="https://cdn.socket.io/4.5.1/socket.io.min.js"></script>
+    <script src="./staff/classes/Game.js"></script>
+    <script src="./staff/classes/Menu.js"></script>
+    <script src="./staff/classes/Particle.js"></script>
+    <script src="./staff/classes/StartButton.js"></script>
+    <script src="./staff/classes/Joystick.js"></script>
+    <script src="./staff/classes/Enemy.js"></script>
+    <script src="./staff/classes/Projectile.js"></script>
+    <script src="./staff/classes/Player.js"></script>
+    <script src="./index.js"></script>
+  </body>
+</html>
