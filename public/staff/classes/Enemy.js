@@ -17,7 +17,7 @@ class Enemy {
 
     this.nextX = 0;
     this.nextY = 0;
-    this.HP = 5;
+    this.HP = 3;
   }
   update() {
     const distance =

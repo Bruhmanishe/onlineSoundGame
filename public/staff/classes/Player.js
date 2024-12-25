@@ -12,7 +12,7 @@ class Player {
     this.projectiles = [];
     this.x = canvas.width / 2;
     this.y = canvas.height / 2;
-    this.HP = 0.1;
+    this.HP = 10;
     this.heart = 0;
     this.healthTime = 4;
     this.timeCounter = 0;

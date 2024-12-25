@@ -10,9 +10,10 @@ class Menu {
       menu: this,
     });
     this.songList = null;
+    this.isLoading = false;
 
     canvas.addEventListener("click", (e) => {
-      if (this.songList) {
+      if (this.songList && !this.isLoading) {
         this.songList.songContainers.forEach((container) => {
           if (
             e.clientX > container.x &&
@@ -24,6 +25,7 @@ class Menu {
           ) {
             console.log(container.menu.songList);
             container.game.socket.emit("sendSong", container.name);
+            this.isLoading = true;
           }
         });
         this.songList.pageButtons.forEach((btn) => {
@@ -85,6 +87,7 @@ class Menu {
           btn.isClicked = false;
         }
       });
+    if (this.songList) this.songList.update();
   }
 }
 
@@ -123,6 +126,7 @@ class SongContainer {
         this.game.startButton = null;
 
         this.menu.songList = null;
+        this.isLoading = false;
       }
     });
   }
@@ -167,12 +171,14 @@ class PageButton {
 class SongList {
   constructor({ ctx, canvas, game, menu }) {
     this.game = game;
+    this.menu = menu;
     this.ctx = ctx;
     this.canvas = canvas;
     this.x = this.canvas.width * 0.1;
     this.y = this.canvas.height * 0.1;
     this.width = this.canvas.width * 0.79;
     this.height = this.canvas.height * 0.8;
+    this.loading = new Loading({ ctx, canvas, songList: this });
     this.songs;
     this.songContainers = [];
     this.pageButtons = [];
@@ -202,10 +208,11 @@ class SongList {
             new PageButton({ ctx, canvas, menu, number: i + 1, songList: this })
           );
         }
-        console.log(this.pageButtons);
       }
+      this.menu.isLoading = false;
     });
     this.game.socket.emit("getSongsData");
+    this.menu.isLoading = true;
   }
   draw() {
     this.ctx.beginPath();
@@ -215,8 +222,16 @@ class SongList {
 
     this.songContainers.forEach((container) => container.draw());
     this.pageButtons.forEach((btn) => btn.draw());
+    if (this.loading) this.loading.draw();
   }
-  update() {}
+  update() {
+    if (this.loading) this.loading.update();
+    this.menu.isLoading && !this.loading
+      ? (this.loading = new Loading({ ctx, canvas, songList: this }))
+      : !this.menu.isLoading
+      ? (this.loading = null)
+      : null;
+  }
 }
 
 class BurgerButton {
@@ -257,5 +272,56 @@ class BurgerButton {
     this.ctx.beginPath();
     this.ctx.rect(this.x, this.y + this.gap * 2, this.width, this.partHeight);
     this.ctx.fill();
+  }
+}
+
+class Loading {
+  constructor({ ctx, canvas, songList }) {
+    this.canvas = canvas;
+    this.ctx = ctx;
+    this.songList = songList;
+    this.x = this.songList.x + this.songList.width / 2;
+    this.y = this.songList.y + this.songList.height / 2;
+    this.radius = 50;
+    this.circleRadius = 10;
+    this.rotationAngle = 0;
+  }
+  update() {
+    this.rotationAngle > Math.PI * 2
+      ? (this.rotationAngle = 0)
+      : (this.rotationAngle += 0.05);
+  }
+  draw() {
+    this.ctx.beginPath();
+    this.ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+    this.ctx.rect(
+      this.songList.x,
+      this.songList.y,
+      this.songList.width,
+      this.songList.height
+    );
+    this.ctx.fill();
+
+    this.ctx.save();
+    this.ctx.beginPath();
+    this.ctx.translate(this.x, this.y);
+    this.ctx.fillStyle = `rgba(0, 0, 255, 0.5)`;
+    this.ctx.rotate(this.rotationAngle);
+    this.ctx.arc(this.radius, this.radius, this.circleRadius, 0, Math.PI * 2);
+    this.ctx.fill();
+    for (let i = 0; 50 > i; i++) {
+      this.ctx.beginPath();
+      this.ctx.fillStyle = `rgba(0, 0, 255, ${this.rotationAngle * 0.1})`;
+      this.ctx.rotate(-0.002 * i);
+      this.ctx.arc(
+        this.radius,
+        this.radius,
+        this.circleRadius - i * 0.2,
+        0,
+        Math.PI * 2
+      );
+      this.ctx.fill();
+    }
+    this.ctx.restore();
   }
 }

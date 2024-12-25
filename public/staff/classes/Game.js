@@ -118,8 +118,8 @@ class Game {
   }
 
   draw() {
-    this.ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
-    this.ctx.rect(0, 0, canvas.width, canvas.height);
+    this.ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+    this.ctx.rect(0, 0, this.canvas.width, this.canvas.height);
     this.ctx.fill();
     this.player.draw();
     this.enemies.forEach((enemy) => enemy.draw());
