@@ -15,6 +15,8 @@ class Game {
     this.secondToFrames = 60;
     this.isMobile = navigator.maxTouchPoints > 0;
     this.isGameStarted = false;
+    this.isPause = false;
+    this.isRestart = false;
 
     window.addEventListener("resize", (e) => {
       this.canvas.width = window.innerWidth;
@@ -41,77 +43,81 @@ class Game {
   }
 
   update({ dataArray, analyser }) {
-    this.player.update(this.controls);
-    this.enemies = this.enemies.filter((enemy) => {
-      enemy.update();
-      if (enemy.HP === 0) {
-        const drX =
-          (this.player.x - enemy.x) /
-          Math.hypot(this.player.x - enemy.x, this.player.y - enemy.y);
-        const drY =
-          (this.player.y - enemy.y) /
-          Math.hypot(this.player.x - enemy.x, this.player.y - enemy.y);
-        for (let i = 0; Math.random() * (10 - 1) + 1 > i; i++) {
-          this.particles.push(
-            new Particle({
-              game: this,
-              ctx: this.ctx,
-              canvas: this.canvas,
-              drX: drX,
-              drY: drY,
-              x: enemy.x,
-              y: enemy.y,
-            })
-          );
+    if (!this.isPause) {
+      this.player.update(this.controls);
+      this.enemies = this.enemies.filter((enemy) => {
+        enemy.update();
+        if (enemy.HP === 0) {
+          const drX =
+            (this.player.x - enemy.x) /
+            Math.hypot(this.player.x - enemy.x, this.player.y - enemy.y);
+          const drY =
+            (this.player.y - enemy.y) /
+            Math.hypot(this.player.x - enemy.x, this.player.y - enemy.y);
+          for (let i = 0; Math.random() * (10 - 1) + 1 > i; i++) {
+            this.particles.push(
+              new Particle({
+                game: this,
+                ctx: this.ctx,
+                canvas: this.canvas,
+                drX: drX,
+                drY: drY,
+                x: enemy.x,
+                y: enemy.y,
+              })
+            );
+          }
         }
-      }
-      if (enemy.HP > 0) {
-        return enemy;
-      } else {
-        this.player.heart >= 255
-          ? (this.player.heart = 255)
-          : this.player.heart++;
-      }
-    });
-    this.particles = this.particles.filter((particle) => {
-      particle.update();
-      if (!particle.isDestroy) {
-        return particle;
-      }
-    });
-
-    this.isMobile ? this.joystick.update() : null;
-    this.startButton ? this.startButton.update({ analyser }) : null;
-
-    if (dataArray) {
-      analyser.getByteFrequencyData(dataArray);
-      const bufferWidth = 10;
-      let x = 0;
-      for (let i = 0; dataArray.length / 2 > i; i++) {
-        if (dataArray[i] > 150) {
-          this.buffersAboveMin++;
-        }
-        ctx.beginPath();
-        if (this.player.HP * 1.6 > i) {
-          ctx.fillStyle = "red";
+        if (enemy.HP > 0) {
+          return enemy;
         } else {
-          ctx.fillStyle = "white";
+          this.player.heart >= 255
+            ? (this.player.heart = 255)
+            : this.player.heart++;
         }
-        ctx.rect(x, canvas.height, bufferWidth, -dataArray[i] / 5);
-        ctx.fill();
-        x += bufferWidth + 1;
-      }
-      if (this.buffersAboveMin > 15) {
-        this.player.updateProjectiles(this.buffersAboveMin);
-        this.#createEnemies();
-      }
-      this.buffersAboveMin = 1;
-    }
+      });
+      this.particles = this.particles.filter((particle) => {
+        particle.update();
+        if (!particle.isDestroy) {
+          return particle;
+        }
+      });
 
-    //frames counter
-    this.framesCounter > this.secondToFrames
-      ? (this.framesCounter = 0)
-      : this.framesCounter++;
+      this.isMobile ? this.joystick.update() : null;
+      this.startButton ? this.startButton.update({ analyser }) : null;
+
+      if (dataArray) {
+        analyser.getByteFrequencyData(dataArray);
+        const bufferWidth = 10;
+        let x = 0;
+        for (let i = 0; dataArray.length / 2 > i; i++) {
+          if (dataArray[i] > 150) {
+            this.buffersAboveMin++;
+          }
+          ctx.beginPath();
+          ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
+
+          if (this.player.HP * 1.6 > i) {
+            ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
+          } else {
+            ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+          }
+          ctx.rect(x, canvas.height, bufferWidth, -dataArray[i] / 5);
+          ctx.fill();
+          x += bufferWidth + 1;
+        }
+        if (this.buffersAboveMin > 15) {
+          this.player.updateProjectiles(this.buffersAboveMin);
+          this.#createEnemies();
+        }
+        this.buffersAboveMin = 1;
+      }
+
+      //frames counter
+      this.framesCounter > this.secondToFrames
+        ? (this.framesCounter = 0)
+        : this.framesCounter++;
+    }
 
     //update menu
     this.menu.update();

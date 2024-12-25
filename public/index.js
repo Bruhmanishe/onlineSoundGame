@@ -38,7 +38,8 @@ window.onload = () => {
     if (audio) {
       if (
         (audio && game.player.HP <= 0) ||
-        audio.duration === audio.currentTime
+        audio.duration === audio.currentTime ||
+        game.isRestart
       ) {
         audio.src = null;
         audio = null;

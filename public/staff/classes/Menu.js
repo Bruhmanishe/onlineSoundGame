@@ -11,6 +11,7 @@ class Menu {
     });
     this.songList = null;
     this.isLoading = false;
+    this.restartBtn;
 
     canvas.addEventListener("click", (e) => {
       if (this.songList && !this.isLoading) {
@@ -39,11 +40,43 @@ class Menu {
           });
         });
       }
+
+      if (this.restartBtn) {
+        if (
+          Math.abs(
+            Math.hypot(
+              e.clientX - this.restartBtn.x,
+              e.clientY - this.restartBtn.y
+            )
+          ) <= this.restartBtn.radius
+        ) {
+          this.game.isRestart = true;
+        }
+      }
+
+      if (
+        e.clientX > this.burgerButton.x &&
+        e.clientX < this.burgerButton.x + this.burgerButton.width &&
+        e.clientY > this.burgerButton.height &&
+        e.clientY < this.burgerButton.y + this.burgerButton.height
+      ) {
+        if (!this.game.isGameStarted) this.burgerButton.isClicked = true;
+        else {
+          if (!this.game.isPause && audio) {
+            this.game.isPause = true;
+            audio.pause();
+          } else if (audio) {
+            this.game.isPause = false;
+            audio.play();
+          }
+        }
+      }
     });
   }
   draw() {
     this.burgerButton.draw();
     this.songList ? this.songList.draw() : null;
+    this.restartBtn ? this.restartBtn.draw() : null;
   }
   update() {
     if (!this.songList && this.burgerButton.isClicked) {
@@ -88,6 +121,10 @@ class Menu {
         }
       });
     if (this.songList) this.songList.update();
+
+    this.game.isPause && !this.restartBtn
+      ? (this.restartBtn = new RestartBtn({ ctx, canvas, menu: this }))
+      : (this.restartBtn = null);
   }
 }
 
@@ -247,17 +284,6 @@ class BurgerButton {
     this.partHeight = 5;
     this.height = this.partHeight * 3 + this.gap;
     this.isClicked = false;
-    this.canvas.addEventListener("click", (e) => {
-      if (
-        e.clientX > this.x &&
-        e.clientX < this.x + this.width &&
-        e.clientY > this.height &&
-        e.clientY < this.y + this.height &&
-        !this.game.isGameStarted
-      ) {
-        this.isClicked = true;
-      }
-    });
   }
   draw() {
     this.ctx.beginPath();
@@ -323,5 +349,45 @@ class Loading {
       this.ctx.fill();
     }
     this.ctx.restore();
+  }
+}
+
+class RestartBtn {
+  constructor({ ctx, canvas, menu }) {
+    this.canvas = canvas;
+    this.ctx = ctx;
+    this.menu = menu;
+    this.x = this.menu.burgerButton.x + this.menu.burgerButton.width / 2;
+    this.y = this.menu.burgerButton.y + this.menu.burgerButton.height * 2.5;
+    this.radius = this.menu.burgerButton.height;
+  }
+
+  draw() {
+    this.ctx.beginPath();
+    this.ctx.lineWidth = 5;
+    this.ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+    this.ctx.arc(this.x, this.y, this.radius, Math.PI * 1.1, 0);
+    this.ctx.stroke();
+    this.ctx.beginPath();
+    this.ctx.beginPath();
+    this.ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+    this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 1.1);
+    this.ctx.stroke();
+
+    this.ctx.beginPath();
+    this.ctx.fillStyle = "rgba(255, 255, 255, 1)";
+    this.ctx.lineTo(this.x - this.radius + 5, this.y - 9);
+    this.ctx.lineTo(this.x - this.radius + 5 - 10, this.y - 9);
+    this.ctx.lineTo(this.x - this.radius + 5, this.y + 10 - 9);
+    this.ctx.fill();
+
+    this.ctx.beginPath();
+    this.ctx.fillStyle = "rgba(255, 255, 255, 1)";
+    this.ctx.lineTo(this.x + this.radius - 5, this.y - 3);
+    this.ctx.lineTo(this.x + this.radius + 10 - 5, this.y + 10);
+    this.ctx.lineTo(this.x + this.radius - 5, this.y + 10);
+    this.ctx.fill();
+
+    this.ctx.lineWidth = 1;
   }
 }
