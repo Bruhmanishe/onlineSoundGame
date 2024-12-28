@@ -129,7 +129,7 @@ class Menu {
 }
 
 class SongContainer {
-  constructor({ ctx, canvas, game, menu, songList, name }) {
+  constructor({ ctx, canvas, game, menu, songList, name, duration }) {
     this.game = game;
     this.menu = menu;
     this.songList = songList;
@@ -140,6 +140,7 @@ class SongContainer {
     this.width = this.songList.width;
     this.height = this.songList.height * 0.2;
     this.name = name || "Song_01";
+    this.duration = duration;
 
     this.game.socket.on("sendSong", (song) => {
       if (!this.game.isGameStarted) {
@@ -169,14 +170,88 @@ class SongContainer {
   }
   draw() {
     this.ctx.beginPath();
-    this.ctx.fillStyle = "grey";
-    this.ctx.rect(this.x, this.y, this.width, this.height);
+    this.ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+    this.ctx.roundRect(this.x - 1, this.y, this.width + 2, this.height, 5);
     this.ctx.fill();
     this.ctx.beginPath();
     this.ctx.fillStyle = "white";
     this.ctx.textAlign = "left";
-    this.ctx.font = "30px Arial";
-    this.ctx.fillText(this.name, this.x, this.y + this.height / 2);
+    this.ctx.font = this.canvas.width * 0.03 + "px Rubik Vinyl";
+    this.ctx.fillText(
+      this.name,
+      this.x + this.height,
+      this.y + this.height * 0.4
+    );
+
+    //Design
+    this.ctx.beginPath();
+    this.ctx.fillStyle = "rgba(0,0,255, 0.2)";
+    this.ctx.arc(
+      this.x + this.height * 0.5,
+      this.y + this.height * 0.5,
+      this.height * 0.4,
+      0,
+      Math.PI * 2
+    );
+    this.ctx.fill();
+    this.ctx.lineWidth = 5;
+    this.ctx.stroke();
+
+    this.ctx.beginPath();
+    this.ctx.fillStyle = "white";
+    this.ctx.rect(
+      this.x + this.height,
+      this.y + this.height * 0.6,
+      this.width - this.height * 1.2,
+      7
+    );
+    this.ctx.fill();
+
+    this.ctx.beginPath();
+    this.ctx.fillStyle = "rgba(255,255,255, 1)";
+    this.ctx.lineTo(this.x + this.height * 0.75, this.y + this.height * 0.5);
+    this.ctx.lineTo(this.x + this.height * 0.35, this.y + this.height * 0.75);
+    this.ctx.lineTo(this.x + this.height * 0.35, this.y + this.height * 0.25);
+    this.ctx.fill();
+    this.ctx.lineWidth = 3;
+    this.ctx.stroke();
+
+    this.ctx.beginPath();
+    this.ctx.fillStyle = "white";
+    this.ctx.textAlign = "left";
+    this.ctx.font =
+      (this.canvas.width > this.canvas.height
+        ? this.canvas.width * 0.015
+        : this.canvas.height * 0.015) + "px Arial";
+    this.ctx.fillText(
+      "0:00",
+      this.x + this.height,
+      this.y + this.height * 0.92
+    );
+    this.ctx.beginPath();
+    this.ctx.fillStyle = "white";
+    this.ctx.textAlign = "left";
+    this.ctx.font =
+      (this.canvas.width > this.canvas.height
+        ? this.canvas.width * 0.015
+        : this.canvas.height * 0.015) + "px Arial";
+    let timeDuration =
+      (Math.floor(this.duration / 60) < 10
+        ? "0" + Math.floor(this.duration / 60)
+        : Math.floor(this.duration / 60)) +
+      ":" +
+      (Math.floor(this.duration) - Math.floor(this.duration / 60) * 60 < 10
+        ? "0" +
+          (Math.floor(this.duration) - Math.floor(this.duration / 60) * 60)
+        : Math.floor(this.duration) - Math.floor(this.duration / 60) * 60);
+
+    this.ctx.fillText(
+      timeDuration,
+      this.x + this.width * 0.9,
+      this.y + this.height * 0.92
+    );
+
+    this.ctx.lineWidth = 1;
   }
 }
 
@@ -212,9 +287,15 @@ class SongList {
     this.ctx = ctx;
     this.canvas = canvas;
     this.x = this.canvas.width * 0.1;
-    this.y = this.canvas.height * 0.1;
+    this.y =
+      this.canvas.height > this.canvas.width
+        ? this.canvas.height * 0.2
+        : this.canvas.height * 0.1;
     this.width = this.canvas.width * 0.79;
-    this.height = this.canvas.height * 0.8;
+    this.height =
+      this.canvas.height > this.canvas.width
+        ? this.canvas.width * 1.2
+        : this.canvas.height * 0.8;
     this.loading = new Loading({ ctx, canvas, songList: this });
     this.songs;
     this.songContainers = [];
@@ -236,6 +317,7 @@ class SongList {
           this.songContainers[index].y +=
             this.songContainers[index].height * index;
           this.songContainers[index].name = song.name;
+          this.songContainers[index].duration = song.duration;
         }
       });
       if (this.songs.length > 5) {
@@ -253,9 +335,16 @@ class SongList {
   }
   draw() {
     this.ctx.beginPath();
-    this.ctx.fillStyle = "white";
-    this.ctx.rect(this.x, this.y, this.width, this.height);
+    this.ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+    this.ctx.roundRect(this.x, this.y, this.width, this.height, 5);
     this.ctx.fill();
+    this.ctx.beginPath();
+    this.ctx.lineWidth = 5;
+    this.ctx.strokeStyle = "rgba(0,255,255, 0.4)";
+    this.ctx.roundRect(this.x, this.y, this.width, this.height, 5);
+    this.ctx.stroke();
+
+    this.ctx.lineWidth = 1;
 
     this.songContainers.forEach((container) => container.draw());
     this.pageButtons.forEach((btn) => btn.draw());

@@ -108,6 +108,27 @@ window.onload = () => {
         break;
     }
   });
+  window.addEventListener("resize", (e) => {
+    console.log(123);
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    if (audio) {
+      audio.src = null;
+      audio = null;
+      audioSource = null;
+      analyser = null;
+      dataArray = null;
+      game = null;
+      audioInput.remove();
+      audioInput = document.createElement("input");
+      document.body.appendChild(audioInput);
+      audioInput.style.display = "none";
+      audioInput.setAttribute("id", "songInput");
+      audioInput.setAttribute("type", "file");
+      audioInput.setAttribute("accept", "audio/*");
+    }
+    game = new Game({ canvas, ctx, controls, socket });
+  });
 
   animate();
 };

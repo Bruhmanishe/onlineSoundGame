@@ -18,6 +18,7 @@ app.get("/", (req, res) => {
 });
 
 const songsBackEnd = [];
+const songMinDur = 30;
 
 io.on("connection", (socket) => {
   console.log("user connected");
@@ -25,11 +26,18 @@ io.on("connection", (socket) => {
     let songsWithSameNames = [...songsBackEnd].filter((backSong) => {
       if (song.name === backSong.name) return song;
     });
-    songsWithSameNames.length === 0 ? songsBackEnd.push(song) : null;
+    let songsWithSameData = [...songsBackEnd].filter((backSong) => {
+      if (song.data == backSong.data) return song;
+    });
+    if (songsWithSameNames.length === 0 && song.duration >= songMinDur) {
+      if (songsWithSameData.length === 0) {
+        songsBackEnd.push(song);
+      }
+    }
   });
   socket.on("getSongsData", () => {
-    const songsData = songsBackEnd.map((song) => {
-      song = { name: song.name };
+    const songsData = [...songsBackEnd].map((song) => {
+      song = { name: song.name, duration: song.duration };
       return song;
     });
     socket.emit("returnSongsData", songsData);
