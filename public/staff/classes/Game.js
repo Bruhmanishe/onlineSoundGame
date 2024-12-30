@@ -42,10 +42,32 @@ class Game {
         }
       }
     });
+
+    this.canvas.addEventListener("mousedown", (e) => {
+      this.controls.isMouseDown = true;
+    });
+    this.canvas.addEventListener("mouseup", (e) => {
+      this.controls.isMouseDown = false;
+    });
+    this.canvas.addEventListener("mousemove", (e) => {
+      if (this.controls.isMouseDown) {
+        const distance =
+          Math.hypot(e.clientX - this.player.x, e.clientY - this.player.y) /
+          (this.player.speed * 1.2);
+        this.controls.dx = (e.clientX - this.player.x) / distance;
+        this.controls.dy = (e.clientY - this.player.y) / distance;
+      }
+    });
   }
 
   update({ dataArray, analyser }) {
     if (!this.isPause) {
+      //movePlayer
+      if (this.controls.isMouseDown) {
+        this.player.x += this.controls.dx;
+        this.player.y += this.controls.dy;
+      }
+
       this.player.update(this.controls);
       this.enemies = this.enemies.filter((enemy) => {
         enemy.update();

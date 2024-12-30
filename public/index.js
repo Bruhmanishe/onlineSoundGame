@@ -16,6 +16,9 @@ let controls = {
   down: false,
   left: false,
   right: false,
+  isMouseDown: false,
+  dx: 0,
+  dy: 0,
 };
 
 let frontEndSongs = [];

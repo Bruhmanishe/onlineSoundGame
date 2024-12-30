@@ -28,18 +28,6 @@ class Joystick {
         this.joystickX = e.touches[0].clientX;
         this.joystickY = e.touches[0].clientY;
         this.isInFoucus = true;
-        if (!this.isGameStarted) {
-          // audio.play();
-          // const audioCtx = new AudioContext();
-          // audioSource = audioCtx.createMediaElementSource(audio);
-          // analyser = audioCtx.createAnalyser();
-          // audioSource.connect(analyser);
-          // analyser.connect(audioCtx.destination);
-          // analyser.fftSize = 64;
-          // const bufferLength = analyser.frequencyBinCount;
-          // dataArray = new Uint8Array(bufferLength);
-          // this.isGameStarted = true;
-        }
       }
     });
     canvas.addEventListener("touchmove", (e) => {
@@ -84,65 +72,77 @@ class Joystick {
   }
 
   update() {
-    if (
-      this.x < this.joystickX &&
-      this.y + this.innerRadius / 3 > this.joystickY &&
-      this.y - this.innerRadius / 3 < this.joystickY
-    ) {
-      this.controls = { up: false, down: false, left: false, right: true };
-      this.game.controls = this.controls;
-    } else if (
-      this.x > this.joystickX &&
-      this.y + this.innerRadius / 3 > this.joystickY &&
-      this.y - this.innerRadius / 3 < this.joystickY
-    ) {
-      this.controls = { up: false, down: false, left: true, right: false };
-      this.game.controls = this.controls;
-    } else if (
-      this.x > this.joystickX &&
-      this.y + this.innerRadius / 3 > this.joystickY
-    ) {
-      this.controls = { up: true, down: false, left: true, right: false };
-      this.game.controls = this.controls;
-    } else if (
-      this.x < this.joystickX &&
-      this.y + this.innerRadius / 3 > this.joystickY
-    ) {
-      this.controls = { up: true, down: false, left: false, right: true };
-      this.game.controls = this.controls;
-    } else if (
-      this.x > this.joystickX &&
-      this.y - this.innerRadius / 3 < this.joystickY
-    ) {
-      this.controls = { up: false, down: true, left: true, right: false };
-      this.game.controls = this.controls;
-    } else if (
-      this.x < this.joystickX &&
-      this.y - this.innerRadius / 3 < this.joystickY
-    ) {
-      this.controls = { up: false, down: true, left: false, right: true };
-      this.game.controls = this.controls;
-    }
+    //direction based movement
+    // if (
+    //   this.x < this.joystickX &&
+    //   this.y + this.innerRadius / 3 > this.joystickY &&
+    //   this.y - this.innerRadius / 3 < this.joystickY
+    // ) {
+    //   this.controls = { up: false, down: false, left: false, right: true };
+    //   this.game.controls = this.controls;
+    // } else if (
+    //   this.x > this.joystickX &&
+    //   this.y + this.innerRadius / 3 > this.joystickY &&
+    //   this.y - this.innerRadius / 3 < this.joystickY
+    // ) {
+    //   this.controls = { up: false, down: false, left: true, right: false };
+    //   this.game.controls = this.controls;
+    // } else if (
+    //   this.x > this.joystickX &&
+    //   this.y + this.innerRadius / 3 > this.joystickY
+    // ) {
+    //   this.controls = { up: true, down: false, left: true, right: false };
+    //   this.game.controls = this.controls;
+    // } else if (
+    //   this.x < this.joystickX &&
+    //   this.y + this.innerRadius / 3 > this.joystickY
+    // ) {
+    //   this.controls = { up: true, down: false, left: false, right: true };
+    //   this.game.controls = this.controls;
+    // } else if (
+    //   this.x > this.joystickX &&
+    //   this.y - this.innerRadius / 3 < this.joystickY
+    // ) {
+    //   this.controls = { up: false, down: true, left: true, right: false };
+    //   this.game.controls = this.controls;
+    // } else if (
+    //   this.x < this.joystickX &&
+    //   this.y - this.innerRadius / 3 < this.joystickY
+    // ) {
+    //   this.controls = { up: false, down: true, left: false, right: true };
+    //   this.game.controls = this.controls;
+    // }
 
-    if (
-      this.y < this.joystickY &&
-      this.x + this.innerRadius / 3 > this.joystickX &&
-      this.x - this.innerRadius / 3 < this.joystickX
-    ) {
-      this.controls = { up: false, down: true, left: false, right: false };
-      this.game.controls = this.controls;
-    } else if (
-      this.y > this.joystickY &&
-      this.x + this.innerRadius / 3 > this.joystickX &&
-      this.x - this.innerRadius / 3 < this.joystickX
-    ) {
-      this.controls = { up: true, down: false, left: false, right: false };
-      this.game.controls = this.controls;
-    }
+    // if (
+    //   this.y < this.joystickY &&
+    //   this.x + this.innerRadius / 3 > this.joystickX &&
+    //   this.x - this.innerRadius / 3 < this.joystickX
+    // ) {
+    //   this.controls = { up: false, down: true, left: false, right: false };
+    //   this.game.controls = this.controls;
+    // } else if (
+    //   this.y > this.joystickY &&
+    //   this.x + this.innerRadius / 3 > this.joystickX &&
+    //   this.x - this.innerRadius / 3 < this.joystickX
+    // ) {
+    //   this.controls = { up: true, down: false, left: false, right: false };
+    //   this.game.controls = this.controls;
+    // }
 
-    if (this.x == this.joystickX && this.y === this.joystickY) {
-      this.controls = { up: false, down: false, left: false, right: false };
-      this.game.controls = this.controls;
+    // if (this.x == this.joystickX && this.y === this.joystickY) {
+    //   this.controls = { up: false, down: false, left: false, right: false };
+    //   this.game.controls = this.controls;
+    // }
+
+    const dx =
+      (this.x - this.joystickX) /
+      Math.hypot(this.x - this.joystickX, this.y - this.joystickY);
+    const dy =
+      (this.y - this.joystickY) /
+      Math.hypot(this.x - this.joystickX, this.y - this.joystickY);
+    if (this.game.player && dx && dy) {
+      this.game.player.x += 5 * -dx;
+      this.game.player.y += 5 * -dy;
     }
   }
 }
