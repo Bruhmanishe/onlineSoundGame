@@ -141,6 +141,7 @@ class SongContainer {
     this.height = this.songList.height * 0.2;
     this.name = name || "Song_01";
     this.duration = duration;
+    this.bestScore = 0;
 
     this.game.socket.on("sendSong", (song) => {
       if (!this.game.isGameStarted) {
@@ -165,6 +166,8 @@ class SongContainer {
 
         this.menu.songList = null;
         this.isLoading = false;
+
+        this.game.songName = this.name;
       }
     });
   }
@@ -180,6 +183,16 @@ class SongContainer {
     this.ctx.fillText(
       this.name,
       this.x + this.height,
+      this.y + this.height * 0.4
+    );
+
+    this.ctx.beginPath();
+    this.ctx.fillStyle = "white";
+    this.ctx.textAlign = "right";
+    this.ctx.font = this.canvas.width * 0.03 + "px Rubik Vinyl";
+    this.ctx.fillText(
+      this.bestScore,
+      this.x + this.width,
       this.y + this.height * 0.4
     );
 
@@ -302,7 +315,10 @@ class SongList {
     this.pageButtons = [];
 
     this.game.socket.on("returnSongsData", (songsData) => {
-      this.songs = songsData;
+      this.songs = songsData.sort((a, b) => {
+        return b.bestScore - a.bestScore;
+      });
+
       this.songs.forEach((song, index) => {
         if (index < 5) {
           this.songContainers.push(
@@ -318,6 +334,7 @@ class SongList {
             this.songContainers[index].height * index;
           this.songContainers[index].name = song.name;
           this.songContainers[index].duration = song.duration;
+          this.songContainers[index].bestScore = song.bestScore;
         }
       });
       if (this.songs.length > 5) {

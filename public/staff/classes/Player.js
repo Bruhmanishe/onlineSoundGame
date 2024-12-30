@@ -21,6 +21,8 @@ class Player {
       isDamaged: false,
       damageTime: 0.1,
     };
+
+    this.score = 0;
   }
 
   updateProjectiles(bufferLength) {

@@ -31,6 +31,7 @@ window.onload = () => {
   audioInput = document.getElementById("songInput");
 
   let game = new Game({ canvas, ctx, controls, socket });
+  console.log(game.enemies);
   function animate() {
     game.update({ dataArray, analyser });
     game.draw();
@@ -41,6 +42,10 @@ window.onload = () => {
         audio.duration === audio.currentTime ||
         game.isRestart
       ) {
+        game.socket.emit("incrementScore", {
+          songName: game.songName,
+          isGameEnd: true,
+        });
         audio.src = null;
         audio = null;
         audioSource = null;
@@ -109,10 +114,13 @@ window.onload = () => {
     }
   });
   window.addEventListener("resize", (e) => {
-    console.log(123);
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     if (audio) {
+      game.socket.emit("incrementScore", {
+        songName: game.songName,
+        isGameEnd: true,
+      });
       audio.src = null;
       audio = null;
       audioSource = null;

@@ -31,13 +31,23 @@ io.on("connection", (socket) => {
     });
     if (songsWithSameNames.length === 0 && song.duration >= songMinDur) {
       if (songsWithSameData.length === 0) {
-        songsBackEnd.push(song);
+        songsBackEnd.push({
+          data: song.data,
+          duration: song.duration,
+          name: song.name,
+          bestScore: 0,
+          tempSore: 0,
+        });
       }
     }
   });
   socket.on("getSongsData", () => {
     const songsData = [...songsBackEnd].map((song) => {
-      song = { name: song.name, duration: song.duration };
+      song = {
+        name: song.name,
+        duration: song.duration,
+        bestScore: song.bestScore,
+      };
       return song;
     });
     socket.emit("returnSongsData", songsData);
@@ -46,6 +56,16 @@ io.on("connection", (socket) => {
   socket.on("sendSong", (songName) => {
     songsBackEnd.forEach((song) => {
       song.name === songName ? socket.emit("sendSong", song.data) : null;
+    });
+  });
+
+  socket.on("incrementScore", ({ songName, isGameEnd }) => {
+    songsBackEnd.forEach((backSong) => {
+      backSong.name === songName ? backSong.tempSore++ : null;
+      backSong.tempSore > backSong.bestScore && isGameEnd
+        ? (backSong.bestScore = backSong.tempSore)
+        : null;
+      isGameEnd ? (backSong.tempSore = 0) : null;
     });
   });
 });

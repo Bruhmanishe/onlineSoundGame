@@ -9,6 +9,7 @@ class Game {
     this.startButton = new StartButton({ canvas, ctx, game: this, socket });
     this.menu = new Menu({ canvas, ctx, game: this });
     this.enemies = [];
+
     this.particles = [];
     this.buffersAboveMin = 1;
     this.framesCounter = 0;
@@ -17,6 +18,7 @@ class Game {
     this.isGameStarted = false;
     this.isPause = false;
     this.isRestart = false;
+    this.songName = "";
 
     window.addEventListener("resize", (e) => {
       this.canvas.width = window.innerWidth;
@@ -47,14 +49,14 @@ class Game {
       this.player.update(this.controls);
       this.enemies = this.enemies.filter((enemy) => {
         enemy.update();
-        if (enemy.HP === 0) {
+        if (enemy.HP === 0 || (enemy.isDamaged && enemy.HP > 3)) {
           const drX =
             (this.player.x - enemy.x) /
             Math.hypot(this.player.x - enemy.x, this.player.y - enemy.y);
           const drY =
             (this.player.y - enemy.y) /
             Math.hypot(this.player.x - enemy.x, this.player.y - enemy.y);
-          for (let i = 0; Math.random() * (10 - 1) + 1 > i; i++) {
+          for (let i = 0; Math.random() * (5 - 1) + 1 > i; i++) {
             this.particles.push(
               new Particle({
                 game: this,
@@ -62,18 +64,36 @@ class Game {
                 canvas: this.canvas,
                 drX: drX,
                 drY: drY,
-                x: enemy.x,
-                y: enemy.y,
+                x:
+                  enemy.x +
+                  Math.random() * (enemy.radius - -enemy.radius) +
+                  -enemy.radius,
+                y:
+                  enemy.y +
+                  Math.random() * (enemy.radius - -enemy.radius) +
+                  -enemy.radius,
               })
             );
           }
+          enemy.isDamaged = false;
         }
+
         if (enemy.HP > 0) {
           return enemy;
         } else {
+          this.player.HP <= 10
+            ? (this.player.HP += 0.005)
+            : (this.player.HP += 0.0);
+
           this.player.heart >= 255
             ? (this.player.heart = 255)
             : this.player.heart++;
+
+          this.player.score++;
+          this.socket.emit("incrementScore", {
+            songName: this.songName,
+            isGameEnd: false,
+          });
         }
       });
       this.particles = this.particles.filter((particle) => {
@@ -90,9 +110,10 @@ class Game {
         analyser.getByteFrequencyData(dataArray);
         const bufferWidth = 10;
         let x = 0;
+        let buffersAboveCount = 1;
         for (let i = 0; dataArray.length / 2 > i; i++) {
           if (dataArray[i] > 150) {
-            this.buffersAboveMin++;
+            buffersAboveCount++;
           }
           ctx.beginPath();
           ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
@@ -106,11 +127,19 @@ class Game {
           ctx.fill();
           x += bufferWidth + 1;
         }
+        this.buffersAboveMin = buffersAboveCount;
         if (this.buffersAboveMin > 15) {
           this.player.updateProjectiles(this.buffersAboveMin);
           this.#createEnemies();
+
+          const enemyBossesCount = this.enemies.filter((enemy) => {
+            if (enemy.HP > 3) return enemy;
+          });
+
+          if (this.buffersAboveMin > 16 && enemyBossesCount.length < 2) {
+            this.#createBossEnemies();
+          }
         }
-        this.buffersAboveMin = 1;
       }
 
       //frames counter
@@ -143,6 +172,20 @@ class Game {
         canvas: this.canvas,
         speed: 4,
         radius: 5,
+      })
+    );
+  }
+
+  #createBossEnemies() {
+    const radius = 50;
+    const speed = 10;
+    this.enemies.push(
+      new EnemyBoss({
+        game: this,
+        ctx: this.ctx,
+        canvas: this.canvas,
+        speed: speed,
+        radius: radius,
       })
     );
   }

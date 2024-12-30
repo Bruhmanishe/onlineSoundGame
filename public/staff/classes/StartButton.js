@@ -42,6 +42,7 @@ class StartButton {
           name: files[0].name.split(".").shift(),
           duration: audio.duration,
         });
+        this.game.songName = files[0].name.split(".").shift();
       }, 3000);
     };
   }
