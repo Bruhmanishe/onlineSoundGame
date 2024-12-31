@@ -141,8 +141,8 @@ class Joystick {
       (this.y - this.joystickY) /
       Math.hypot(this.x - this.joystickX, this.y - this.joystickY);
     if (this.game.player && dx && dy) {
-      this.game.player.x += 5 * -dx;
-      this.game.player.y += 5 * -dy;
+      this.game.player.x += this.game.player.speed * -dx;
+      this.game.player.y += this.game.player.speed * -dy;
     }
   }
 }

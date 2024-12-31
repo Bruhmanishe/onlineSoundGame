@@ -5,10 +5,13 @@ class Game {
     this.controls = controls;
     this.socket = socket;
     this.joystick = new Joystick({ canvas, ctx, controls, game: this });
-    this.player = new Player({ ctx, canvas, speed: 5, game: this });
+    this.player = new Player({ ctx, canvas, speed: 6.5, game: this });
     this.startButton = new StartButton({ canvas, ctx, game: this, socket });
     this.menu = new Menu({ canvas, ctx, game: this });
     this.enemies = [];
+    // this.#createLaserEnemies();
+    // this.enemies[0].x = 100;
+    // this.enemies[0].y = 100;
 
     this.particles = [];
     this.buffersAboveMin = 1;
@@ -155,11 +158,27 @@ class Game {
           this.#createEnemies();
 
           const enemyBossesCount = this.enemies.filter((enemy) => {
-            if (enemy.HP > 3) return enemy;
+            if (enemy.type === "boss") return enemy;
           });
 
-          if (this.buffersAboveMin > 16 && enemyBossesCount.length < 2) {
+          const enemyLaserCount = this.enemies.filter((enemy) => {
+            if (enemy.type === "laser") return enemy;
+          });
+
+          if (
+            this.buffersAboveMin > 16 &&
+            enemyBossesCount.length < 2 &&
+            audio.currentTime > audio.duration * 0.2
+          ) {
             this.#createBossEnemies();
+          }
+
+          if (
+            this.buffersAboveMin > 16 &&
+            enemyLaserCount.length < 3 &&
+            audio.currentTime > audio.duration * 0.5
+          ) {
+            this.#createLaserEnemies();
           }
         }
       }
@@ -208,6 +227,18 @@ class Game {
         canvas: this.canvas,
         speed: speed,
         radius: radius,
+      })
+    );
+  }
+
+  #createLaserEnemies() {
+    this.enemies.push(
+      new EnemyLaser({
+        game: this,
+        ctx: this.ctx,
+        canvas: this.canvas,
+        speed: 1,
+        radius: 10,
       })
     );
   }
