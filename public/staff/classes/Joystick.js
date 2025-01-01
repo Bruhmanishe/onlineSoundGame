@@ -33,18 +33,25 @@ class Joystick {
     canvas.addEventListener("touchmove", (e) => {
       if (
         this.isInFoucus &&
-        e.touches[0].clientX > this.x - this.outerRadius &&
-        e.touches[0].clientX < this.x + this.outerRadius
-      ) {
-        this.joystickX = e.touches[0].clientX;
-      }
-
-      if (
-        this.isInFoucus &&
-        e.touches[0].clientY > this.y - this.outerRadius &&
-        e.touches[0].clientY < this.y + this.outerRadius
+        Math.abs(
+          Math.hypot(
+            e.touches[0].clientX - this.x,
+            e.touches[0].clientY - this.y
+          )
+        ) < this.outerRadius
       ) {
         this.joystickY = e.touches[0].clientY;
+        this.joystickX = e.touches[0].clientX;
+      } else if (this.isInFoucus) {
+        const distance = Math.hypot(
+          e.touches[0].clientX - this.x,
+          e.touches[0].clientY - this.y
+        );
+        const dx = (e.touches[0].clientX - this.x) / distance;
+        const dy = (e.touches[0].clientY - this.y) / distance;
+
+        this.joystickY = dy * this.outerRadius + this.y;
+        this.joystickX = dx * this.outerRadius + this.x;
       }
     });
     canvas.addEventListener("touchend", (e) => {

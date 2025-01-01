@@ -9,6 +9,7 @@ class Game {
     this.startButton = new StartButton({ canvas, ctx, game: this, socket });
     this.menu = new Menu({ canvas, ctx, game: this });
     this.enemies = [];
+    this.border = new BorderEffect({ canvas, ctx, controls, game: this });
     // this.#createLaserEnemies();
     // this.enemies[0].x = 100;
     // this.enemies[0].y = 100;
@@ -54,6 +55,9 @@ class Game {
     });
     this.canvas.addEventListener("mousemove", (e) => {
       if (this.controls.isMouseDown) {
+        this.controls.mouseX = e.clientX;
+        this.controls.mouseY = e.clientY;
+
         const distance =
           Math.hypot(e.clientX - this.player.x, e.clientY - this.player.y) /
           (this.player.speed * 1.2);
@@ -66,9 +70,17 @@ class Game {
   update({ dataArray, analyser }) {
     if (!this.isPause) {
       //movePlayer
-      if (this.controls.isMouseDown) {
-        this.player.x += this.controls.dx;
-        this.player.y += this.controls.dy;
+      if (
+        this.controls.isMouseDown &&
+        Math.abs(
+          Math.hypot(
+            this.controls.mouseX - this.player.x,
+            this.controls.mouseY - this.player.y
+          )
+        ) > this.player.radius
+      ) {
+        this.player.x += this.controls.dx * 1;
+        this.player.y += this.controls.dy * 1;
       }
 
       this.player.update(this.controls);
@@ -202,6 +214,7 @@ class Game {
     this.particles.forEach((particle) => particle.draw());
     this.isMobile ? this.joystick.draw() : null;
     this.startButton ? this.startButton.draw() : null;
+    this.border.draw();
     this.menu.draw();
   }
 
@@ -241,5 +254,65 @@ class Game {
         radius: 10,
       })
     );
+  }
+}
+
+class BorderEffect {
+  constructor({ canvas, ctx, game }) {
+    this.game = game;
+    this.ctx = ctx;
+    this.canvas = canvas;
+    this.isInContact = { left: false, right: false, top: false, down: false };
+    this.shift = 0;
+  }
+
+  draw() {
+    this.shift > this.canvas.width / 10 ? (this.shift = 0) : this.shift++;
+    this.ctx.beginPath();
+    this.ctx.lineWidth = 20;
+    for (let i = 0; (this.canvas.width * 2) / 10 > i; i++) {
+      this.ctx.fillStyle = `rgba(0, 0, 255, ${Math.random() * 0.2})`;
+      if (this.isInContact.top) {
+        this.ctx.rect(-this.canvas.width + 10 * i + this.shift, 0, 8, 2);
+        this.ctx.rect(0 + 10 * i - this.shift, 5, 8, 2);
+      }
+
+      if (this.isInContact.down) {
+        this.ctx.rect(0 + 10 * i - this.shift, this.canvas.height - 7, 8, 2);
+        this.ctx.rect(
+          -this.canvas.width + 10 * i + this.shift,
+          this.canvas.height - 2,
+          8,
+          2
+        );
+      }
+    }
+
+    for (let i = 0; (this.canvas.height * 2) / 10 > i; i++) {
+      this.ctx.fillStyle = `rgba(0, 0, 255, ${Math.random() * 0.2})`;
+
+      if (this.isInContact.left) {
+        this.ctx.rect(0, -this.canvas.height + 10 * i + this.shift, 2, 8);
+        this.ctx.rect(7, 0 + 10 * i - this.shift, 2, 8);
+      }
+
+      if (this.isInContact.right) {
+        this.ctx.rect(
+          this.canvas.width - 2,
+          -this.canvas.height + 10 * i + this.shift,
+          2,
+          8
+        );
+        this.ctx.rect(
+          this.canvas.width - 7,
+          -this.canvas.height + 10 * i - this.shift,
+          2,
+          8
+        );
+      }
+    }
+
+    this.ctx.fill();
+    this.ctx.lineWidth = 1;
   }
 }

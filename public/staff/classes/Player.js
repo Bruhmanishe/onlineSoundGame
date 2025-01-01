@@ -56,16 +56,32 @@ class Player {
     }
 
     //Checking border collision
-    this.x + this.radius > this.canvas.width
-      ? (this.x = this.canvas.width - this.radius)
-      : this.x - this.radius < 0
-      ? (this.x = this.radius)
-      : null;
+
+    this.y + this.radius >= this.canvas.height
+      ? (this.game.border.isInContact.down = true)
+      : this.y - this.radius <= 0
+      ? (this.game.border.isInContact.top = true)
+      : this.x + this.radius >= this.canvas.width
+      ? (this.game.border.isInContact.right = true)
+      : this.x - this.radius <= 0
+      ? (this.game.border.isInContact.left = true)
+      : (this.game.border.isInContact = {
+          left: false,
+          right: false,
+          top: false,
+          down: false,
+        });
 
     this.y + this.radius >= this.canvas.height
       ? (this.y = this.canvas.height - this.radius)
       : this.y - this.radius < 0
       ? (this.y = this.radius)
+      : null;
+
+    this.x + this.radius > this.canvas.width
+      ? (this.x = this.canvas.width - this.radius)
+      : this.x - this.radius < 0
+      ? (this.x = this.radius)
       : null;
 
     for (let i = 0; this.projectiles.length > i; i++) {

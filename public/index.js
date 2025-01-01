@@ -19,6 +19,8 @@ let controls = {
   isMouseDown: false,
   dx: 0,
   dy: 0,
+  mouseX: 0,
+  mouseY: 0,
 };
 
 let frontEndSongs = [];
@@ -117,9 +119,9 @@ window.onload = () => {
     }
   });
   window.addEventListener("resize", (e) => {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
     if (audio) {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
       game.socket.emit("incrementScore", {
         songName: game.songName,
         isGameEnd: true,
