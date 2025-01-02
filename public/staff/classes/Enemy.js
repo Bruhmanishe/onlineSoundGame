@@ -105,6 +105,28 @@ class Enemy {
       );
       const dx = (this.x - this.game.player.x) / distance;
       const dy = (this.y - this.game.player.y) / distance;
+      //making particles
+      if (this.timeCount % 10 === 0 && this.timeCount > 60) {
+        for (let i = 0; Math.abs(Math.random() * (5 - 2) + 2) > i; i++) {
+          this.game.particles.push(
+            new LaserParticle({
+              game: this.game,
+              x:
+                this.eyeX +
+                this.radius *
+                  (Math.random() * 1.5) *
+                  (-dx + -dx * (Math.random() * (1 - -1) + -1)),
+              y:
+                this.eyeY +
+                this.radius *
+                  (Math.random() * 1.5) *
+                  (-dy + -dx * (Math.random() * (1 - -1) + -1)),
+              parent: this,
+              speed: (this.timeCount / 70) * this.speed,
+            })
+          );
+        }
+      }
 
       if (Math.abs(distance) < this.canvas.width * 0.25 && !this.laser) {
         this.x += this.speed * dx;

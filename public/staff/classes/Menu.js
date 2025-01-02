@@ -22,9 +22,9 @@ class Menu {
             e.clientY > container.height &&
             e.clientY < container.y + container.height &&
             !container.game.isGameStarted &&
-            container.menu.songList
+            container.menu.songList &&
+            container.name !== ""
           ) {
-            console.log(container.menu.songList);
             container.game.socket.emit("sendSong", container.name);
             this.isLoading = true;
           }
@@ -110,6 +110,10 @@ class Menu {
               if (this.songList.songs[(i + 5) * (btn.number - 1)]) {
                 container.name =
                   this.songList.songs[(i + 5) * (btn.number - 1)].name;
+                container.duration =
+                  this.songList.songs[(i + 5) * (btn.number - 1)].duration;
+                container.bestScore =
+                  this.songList.songs[(i + 5) * (btn.number - 1)].bestScore;
               } else {
                 container.name = "";
               }
@@ -285,11 +289,16 @@ class PageButton {
     this.ctx.fillStyle = "rgba(255,255,255, 0.1)";
     this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
     this.ctx.fill();
+    this.ctx.lineWidth = 10;
+    this.ctx.strokeStyle = "rgba(0, 100, 255, 0.4)";
+    this.ctx.stroke();
+    this.ctx.lineWidth = 1;
+
     this.ctx.beginPath();
     this.ctx.fillStyle = "white";
-    this.ctx.font = "30px Arial";
+    this.ctx.font = "30px Rubik Vinyl";
     this.ctx.textAlign = "center";
-    this.ctx.fillText(this.number, this.x, this.y);
+    this.ctx.fillText(this.number, this.x, this.y + 10);
   }
 }
 
