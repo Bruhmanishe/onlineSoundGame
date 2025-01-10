@@ -1,5 +1,10 @@
 class Game {
   constructor({ canvas, ctx, controls, socket }) {
+    this.isFirstTimePlayer = true;
+    this.isFirstTimePlayer =
+      JSON.parse(localStorage.getItem("isFirstTimePlayer")) === false
+        ? false
+        : true;
     this.ctx = ctx;
     this.canvas = canvas;
     this.controls = controls;
@@ -39,7 +44,8 @@ class Game {
           e.clientX > this.startButton.x &&
           e.clientX < this.startButton.x + this.startButton.width &&
           e.clientY > this.startButton.y &&
-          e.clientY < this.startButton.y + this.startButton.height
+          e.clientY < this.startButton.y + this.startButton.height &&
+          !this.menu.instruction
         ) {
           audioInput.click();
           this.startButton.opacity = 1;

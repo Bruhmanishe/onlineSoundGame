@@ -12,6 +12,14 @@ class Menu {
     this.songList = null;
     this.isLoading = false;
     this.restartBtn;
+    this.helpBtn = new HelpBtn({ ctx, canvas, menu: this });
+    this.instruction = this.game.isFirstTimePlayer
+      ? new Instruction({
+          ctx: this.ctx,
+          canvas: this.canvas,
+          menu: this,
+        })
+      : null;
 
     canvas.addEventListener("click", (e) => {
       if (this.songList && !this.isLoading) {
@@ -58,7 +66,8 @@ class Menu {
         e.clientX > this.burgerButton.x &&
         e.clientX < this.burgerButton.x + this.burgerButton.width &&
         e.clientY > this.burgerButton.height &&
-        e.clientY < this.burgerButton.y + this.burgerButton.height
+        e.clientY < this.burgerButton.y + this.burgerButton.height &&
+        !this.instruction
       ) {
         if (!this.game.isGameStarted) this.burgerButton.isClicked = true;
         else {
@@ -71,12 +80,62 @@ class Menu {
           }
         }
       }
+
+      if (
+        !this.game.isGameStarted &&
+        Math.abs(
+          Math.hypot(
+            this.helpBtn.x - e.clientX,
+            this.helpBtn.y + this.helpBtn.radius - e.clientY
+          )
+        ) <
+          this.helpBtn.radius * 1.8 &&
+        !this.songList
+      ) {
+        this.helpBtn.isClicked = true;
+      }
+      if (!this.game.isGameStarted && this.instruction) {
+        if (
+          Math.abs(
+            Math.hypot(
+              this.instruction.leftBtn.x +
+                this.instruction.leftBtn.width / 2 -
+                e.clientX,
+              this.instruction.leftBtn.y +
+                this.instruction.leftBtn.width / 2 -
+                e.clientY
+            )
+          ) < this.instruction.leftBtn.width
+        ) {
+          this.instruction.imgs[this.instruction.pNum - 1]
+            ? (this.instruction.pNum -= 1)
+            : null;
+        }
+        if (
+          Math.abs(
+            Math.hypot(
+              this.instruction.rightBtn.x -
+                this.instruction.rightBtn.width / 2 -
+                e.clientX,
+              this.instruction.rightBtn.y -
+                this.instruction.rightBtn.width / 2 -
+                e.clientY
+            )
+          ) < this.instruction.rightBtn.width
+        ) {
+          this.instruction.imgs[this.instruction.pNum + 1]
+            ? (this.instruction.pNum += 1)
+            : null;
+        }
+      }
     });
   }
   draw() {
     this.burgerButton.draw();
-    this.songList ? this.songList.draw() : null;
-    this.restartBtn ? this.restartBtn.draw() : null;
+    this.songList && this.songList.draw();
+    this.restartBtn && this.restartBtn.draw();
+    !this.game.isGameStarted && this.helpBtn.draw();
+    !this.game.isGameStarted && this.instruction && this.instruction.draw();
   }
   update() {
     if (!this.songList && this.burgerButton.isClicked) {
@@ -128,7 +187,26 @@ class Menu {
 
     this.game.isPause && !this.restartBtn
       ? (this.restartBtn = new RestartBtn({ ctx, canvas, menu: this }))
-      : (this.restartBtn = null);
+      : !this.game.isPause
+      ? (this.restartBtn = null)
+      : null;
+
+    if (this.helpBtn.isClicked) {
+      !this.instruction
+        ? (this.instruction = new Instruction({
+            ctx: this.ctx,
+            canvas: this.canvas,
+            menu: this,
+          }))
+        : ((this.instruction = null),
+          this.game.isFirstTimePlayer &&
+            localStorage.setItem(
+              "isFirstTimePlayer",
+              JSON.stringify(!this.game.isFirstTimePlayer)
+            ));
+      this.helpBtn.isClicked = false;
+    }
+    !this.game.isGameStarted && this.instruction && this.instruction.update();
   }
 }
 
@@ -504,5 +582,144 @@ class RestartBtn {
     this.ctx.fill();
 
     this.ctx.lineWidth = 1;
+  }
+}
+
+class HelpBtn {
+  constructor({ ctx, canvas, menu }) {
+    this.canvas = canvas;
+    this.ctx = ctx;
+    this.menu = menu;
+    this.x = this.menu.burgerButton.x + this.menu.burgerButton.width / 2;
+    this.y = this.menu.burgerButton.y + this.menu.burgerButton.height * 2.5;
+    this.radius = this.menu.burgerButton.height * 0.7;
+    this.isClicked = false;
+  }
+  draw() {
+    this.ctx.beginPath();
+    this.ctx.lineWidth = 7;
+    !this.menu.instruction
+      ? (this.ctx.strokeStyle = "rgba(255, 255, 255, 0.2)")
+      : (this.ctx.strokeStyle = "rgba(255, 255, 255, 1)");
+    this.ctx.arc(this.x, this.y, this.radius, Math.PI, Math.PI * 0.3);
+    this.ctx.stroke();
+    this.ctx.beginPath();
+    this.ctx.arc(
+      this.x + this.radius,
+      this.y + this.radius * 1.7,
+      this.radius,
+      Math.PI,
+      Math.PI * -0.6
+    );
+    this.ctx.stroke();
+    this.ctx.beginPath();
+    this.ctx.arc(this.x, this.y + this.radius * 2.3, 2, 0, Math.PI * 2);
+    this.ctx.stroke();
+    this.ctx.lineWidth = 1;
+  }
+}
+
+class Instruction {
+  constructor({ ctx, canvas, menu }) {
+    this.canvas = canvas;
+    this.ctx = ctx;
+    this.menu = menu;
+    this.x = this.canvas.width / 2;
+    this.y = this.canvas.height / 2;
+    this.width = this.menu.burgerButton.height * 0.7;
+    this.imgs = document.querySelectorAll(".instruction-img");
+    this.leftBtn = {
+      x: 0,
+      y: this.canvas.height / 2,
+      width: this.canvas.width * 0.05,
+      height: this.canvas.width * 0.05,
+      opacity: 1,
+    };
+    this.rightBtn = {
+      x: 0,
+      y: this.canvas.height / 2,
+      width: this.canvas.width * 0.05,
+      height: this.canvas.width * 0.05,
+      opacity: 1,
+    };
+    this.pNum = 0;
+    this.menu.game.isFirstTimePlayer
+      ? (this.imgs[2].src = "./staff/instruction/kit01.jpg")
+      : null;
+  }
+  draw() {
+    this.ctx.beginPath();
+    this.ctx.drawImage(
+      this.imgs[this.pNum],
+      this.x - this.imgs[this.pNum].width / 2,
+      this.y - this.imgs[this.pNum].height / 2,
+      this.imgs[this.pNum].width,
+      this.imgs[this.pNum].height
+    );
+    this.ctx.closePath();
+    this.ctx.beginPath();
+    this.ctx.fillStyle = `rgba(255, 255, 255, ${this.rightBtn.opacity})`;
+    this.ctx.lineTo(this.rightBtn.x, this.rightBtn.y);
+    this.ctx.lineTo(
+      this.rightBtn.x - this.rightBtn.width,
+      this.rightBtn.y - this.rightBtn.height / 2
+    );
+    this.ctx.lineTo(
+      this.rightBtn.x - this.rightBtn.width,
+      this.rightBtn.y + this.rightBtn.height / 2
+    );
+    this.ctx.lineTo(this.rightBtn.x, this.rightBtn.y);
+    this.ctx.fill();
+
+    if (this.imgs[this.pNum - 1]) {
+      this.ctx.beginPath();
+      this.ctx.fillStyle = `rgba(255,255,255, ${this.leftBtn.opacity})`;
+      this.ctx.lineTo(this.leftBtn.x, this.leftBtn.y);
+      this.ctx.lineTo(
+        this.leftBtn.x + this.leftBtn.width,
+        this.leftBtn.y + this.leftBtn.height / 2
+      );
+      this.ctx.lineTo(
+        this.leftBtn.x + this.leftBtn.width,
+        this.leftBtn.y - this.leftBtn.height / 2
+      );
+      this.ctx.lineTo(this.leftBtn.x, this.leftBtn.y);
+      this.ctx.fill();
+    }
+  }
+
+  update() {
+    this.imgs.forEach((img) => {
+      (img.tagName === "VIDEO" && !img.currentTime === 0) ||
+      img.paused ||
+      img.ended
+        ? (img.play(),
+          ((img.width = this.canvas.width * 0.7),
+          (img.height = this.canvas.height * 0.7)))
+        : null;
+    });
+    this.imgs[this.pNum].width > this.canvas.width
+      ? (this.imgs[this.pNum].width =
+          this.imgs[this.pNum].width *
+          ((this.canvas.width / this.imgs[this.pNum].width) * 0.8))
+      : null;
+
+    this.imgs[this.pNum].height > this.canvas.height
+      ? (this.imgs[this.pNum].height =
+          this.imgs[this.pNum].height *
+          ((this.canvas.height / this.imgs[this.pNum].height) * 0.8))
+      : null;
+
+    this.leftBtn.x =
+      this.x - this.imgs[this.pNum].width / 2 - this.rightBtn.width;
+    this.rightBtn.x =
+      this.x + this.imgs[this.pNum].width / 2 + this.rightBtn.width;
+
+    !this.imgs[this.pNum - 1]
+      ? (this.leftBtn.opacity = 0.3)
+      : (this.leftBtn.opacity = 1);
+    !this.imgs[this.pNum + 1]
+      ? (this.rightBtn.opacity = 0.3)
+      : (this.rightBtn.opacity = 1);
   }
 }

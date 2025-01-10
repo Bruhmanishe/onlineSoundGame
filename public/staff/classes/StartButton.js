@@ -10,11 +10,11 @@ class StartButton {
         : this.canvas.height / 5;
     this.height =
       this.canvas.width > this.canvas.height
-        ? this.canvas.height / 2.5
-        : this.canvas.width / 2.5;
+        ? this.canvas.width / 5
+        : this.canvas.height / 5;
     this.x = this.canvas.width / 2 - this.width / 2;
     this.y = this.canvas.height / 2 - this.height / 2;
-    this.opacity = 0.2;
+    this.opacity = 0.3;
 
     audioInput.onchange = () => {
       this.opacity = 0.2;
@@ -53,12 +53,16 @@ class StartButton {
     this.ctx.lineTo(this.x + this.width, this.y + this.height * 0.5);
     this.ctx.lineTo(this.x, this.y + this.height);
     this.ctx.lineTo(this.x, this.y);
-    // this.ctx.rect(this.x, this.y, this.width, this.height);
+    this.ctx.lineWidth = 15;
+    this.ctx.strokeStyle = "rgba(121, 121, 121, 0.4)";
+    this.ctx.stroke();
+    this.ctx.lineWidth = 1;
     this.ctx.fill();
+
     this.ctx.save();
     this.ctx.beginPath();
     this.ctx.translate(this.x + this.width / 2, this.y + this.height / 4);
-    this.ctx.rotate(Math.PI / 6.9);
+    this.ctx.rotate(Math.PI / 6.82);
 
     this.ctx.fillStyle = "rgba(255, 255, 255," + this.opacity + ")";
     this.ctx.textAlign = "center";

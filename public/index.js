@@ -34,7 +34,6 @@ ctx.fill();
 
 window.onload = () => {
   audioInput = document.getElementById("songInput");
-
   let game = new Game({ canvas, ctx, controls, socket });
   console.log(game.enemies);
   function animate() {
