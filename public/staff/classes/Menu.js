@@ -690,12 +690,16 @@ class Instruction {
 
   update() {
     this.imgs.forEach((img) => {
+      this.canvas.width > this.canvas.height
+        ? ((img.width = this.canvas.width * 0.7),
+          (img.height = this.canvas.height * 0.7))
+        : (img.width = this.canvas.width * 0.9),
+        (img.height = this.canvas.height * 0.3);
+
       (img.tagName === "VIDEO" && !img.currentTime === 0) ||
       img.paused ||
       img.ended
-        ? (img.play(),
-          ((img.width = this.canvas.width * 0.7),
-          (img.height = this.canvas.height * 0.7)))
+        ? img.play()
         : null;
     });
     this.imgs[this.pNum].width > this.canvas.width
