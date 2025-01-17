@@ -128,33 +128,38 @@ class Enemy {
         }
       }
 
-      if (Math.abs(distance) < this.canvas.width * 0.25 && !this.laser) {
+      if (Math.abs(distance) < this.canvas.width * 0.15 && !this.laser) {
         this.x += this.speed * dx;
         this.y += this.speed * dy;
-      } else if (Math.abs(distance) > this.canvas.width * 0.4 && !this.laser) {
+      } else if (Math.abs(distance) > this.canvas.width * 0.25 && !this.laser) {
         this.x += this.speed * -dx;
         this.y += this.speed * -dy;
       }
 
       if (!this.laser) {
-        this.eyeX = this.x + this.radius * 0.5 * -dx;
-        this.eyeY = this.y + this.radius * 0.5 * -dy;
+        dx > this.eyedx ? (this.eyedx += 0.02) : (this.eyedx -= 0.02);
+        dy > this.eyedy ? (this.eyedy += 0.02) : (this.eyedy -= 0.02);
+
+        this.eyeX = this.x + this.radius * 0.5 * -this.eyedx;
+        this.eyeY = this.y + this.radius * 0.5 * -this.eyedy;
       }
 
       if (this.laser) {
         this.laser.update();
-        if (
-          Math.abs(
-            Math.hypot(
-              this.laser.hitBox.x - this.game.player.x,
-              this.laser.hitBox.y - this.game.player.y
-            )
-          ) <
-          this.laser.hitBox.radius + this.game.player.radius
-        ) {
-          this.game.player.HP -= 0.7;
-          this.game.player.properties.isDamaged = true;
-        }
+        this.laser.hitBoxs.forEach((hitBox) => {
+          if (
+            Math.abs(
+              Math.hypot(
+                hitBox.x - this.game.player.x,
+                hitBox.y - this.game.player.y
+              )
+            ) <
+            hitBox.radius + this.game.player.radius
+          ) {
+            this.game.player.HP -= 0.2;
+            this.game.player.properties.isDamaged = true;
+          }
+        });
       }
     }
 
@@ -246,9 +251,21 @@ class EnemyLaser extends Enemy {
         Math.random() > 0.5 ? -this.radius : this.canvas.width + this.radius;
       this.y = Math.random() * this.canvas.height;
     }
-    this.eyeX;
-    this.eyeY;
+    this.eyeX = this.x;
+    this.eyeY = this.y;
     this.eyeRadius = this.radius * 0.7;
+    this.eyedx =
+      (this.eyeX - this.game.player.x) /
+      Math.hypot(
+        this.eyeX - this.game.player.x,
+        this.eyeY - this.game.player.y
+      );
+    this.eyedy =
+      (this.eyeY - this.game.player.y) /
+      Math.hypot(
+        this.eyeX - this.game.player.x,
+        this.eyeY - this.game.player.y
+      );
   }
 
   draw() {
@@ -316,85 +333,69 @@ class Laser {
     this.lineX = this.x;
     this.lineY = this.y;
 
-    this.hitBox = { x: this.x, y: this.y, radius: 10, isHit: false };
+    this.hitBoxs = [
+      { x: this.x, y: this.y, radius: 10, isHit: false, speed: 40 },
+      { x: this.x, y: this.y, radius: 10, isHit: false, speed: 30 },
+      { x: this.x, y: this.y, radius: 10, isHit: false, speed: 20 },
+    ];
 
-    this.distance = Math.hypot(
-      this.x - this.game.player.x,
-      this.y - this.game.player.y
-    );
-    this.dx = (this.x - this.game.player.x) / this.distance;
-    this.dy = (this.y - this.game.player.y) / this.distance;
+    // this.distance = Math.hypot(
+    //   this.x - this.game.player.x,
+    //   this.y - this.game.player.y
+    // );
+    // this.dx = (this.x - this.game.player.x) / this.distance;
+    // this.dy = (this.y - this.game.player.y) / this.distance;
 
     this.width = this.parent.eyeRadius / 2;
   }
   draw() {
     this.ctx.beginPath();
     this.ctx.strokeStyle = "red";
-    this.ctx.lineWidth = this.hitBox.radius * 2;
+    this.ctx.lineWidth = this.hitBoxs[0].radius * 2;
     this.ctx.lineTo(this.x, this.y);
     this.ctx.lineTo(
-      (this.lineX += 30 * -this.dx),
-      (this.lineY += 30 * -this.dy)
+      (this.lineX += 30 * -this.parent.eyedx),
+      (this.lineY += 30 * -this.parent.eyedy)
     );
     this.ctx.stroke();
 
     this.ctx.beginPath();
     this.ctx.strokeStyle = "rgba(255, 0, 0, 0.3)";
-    this.ctx.lineWidth = this.hitBox.radius * 2.5;
+    this.ctx.lineWidth = this.hitBoxs[0].radius * 2.5;
     this.ctx.lineTo(this.x, this.y);
     this.ctx.lineTo(
-      (this.lineX += 30 * -this.dx),
-      (this.lineY += 30 * -this.dy)
+      (this.lineX += 30 * -this.parent.eyedx),
+      (this.lineY += 30 * -this.parent.eyedy)
     );
     this.ctx.stroke();
     this.ctx.lineWidth = 1;
 
-    this.ctx.beginPath();
-    this.ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
-    this.ctx.arc(
-      this.hitBox.x,
-      this.hitBox.y,
-      this.hitBox.radius,
-      0,
-      Math.PI * 2
-    );
-    this.ctx.fill();
+    this.hitBoxs.forEach((hitBox) => {
+      this.ctx.beginPath();
+      this.ctx.fillStyle = "rgba(255, 255, 255, 0)";
+      this.ctx.arc(hitBox.x, hitBox.y, hitBox.radius, 0, Math.PI * 2);
+      this.ctx.fill();
+    });
   }
 
   update() {
-    this.hitBox.radius = this.game.buffersAboveMin;
-    this.x = this.parent.eyeX;
-    this.y = this.parent.eyeY;
+    this.hitBoxs.forEach((hitBox) => {
+      hitBox.radius = this.game.buffersAboveMin;
+      this.x = this.parent.eyeX;
+      this.y = this.parent.eyeY;
 
-    if (
-      this.hitBox.x > this.canvas.width ||
-      this.hitBox.x < 0 ||
-      this.hitBox.y > this.canvas.height ||
-      this.hitBox.y < 0
-    ) {
-      this.hitBox.x = this.x;
-      this.hitBox.y = this.y;
-    } else {
-      this.hitBox.x += 30 * -this.dx;
-      this.hitBox.y += 30 * -this.dy;
-    }
-
-    //! Direction based detection
-
-    // const currDistance = Math.hypot(
-    //   this.x - this.game.player.x,
-    //   this.y - this.game.player.y
-    // );
-    // const currDx = (this.x - this.game.player.x) / currDistance;
-    // const currDy = (this.y - this.game.player.y) / currDistance;
-    // console.log(currDx, this.dx, currDy, this.dy);
-    // if (
-    //   currDx <= this.dx + 0.1 &&
-    //   currDx >= this.dx - 0.1 &&
-    //   currDy <= this.dy + 0.1 &&
-    //   currDy >= this.dy - 0.1
-    // ) {
-    //   console.log("hit");
-    // }
+      if (
+        hitBox.x > this.canvas.width ||
+        hitBox.x < 0 ||
+        hitBox.y > this.canvas.height ||
+        hitBox.y < 0
+      ) {
+        hitBox.x = this.x;
+        hitBox.y = this.y;
+      } else {
+        hitBox.x += hitBox.speed * -this.parent.eyedx;
+        hitBox.y += hitBox.speed * -this.parent.eyedy;
+      }
+    });
   }
 }

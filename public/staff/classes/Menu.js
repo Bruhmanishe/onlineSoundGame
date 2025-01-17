@@ -693,8 +693,8 @@ class Instruction {
       this.canvas.width > this.canvas.height
         ? ((img.width = this.canvas.width * 0.7),
           (img.height = this.canvas.height * 0.7))
-        : (img.width = this.canvas.width * 0.9),
-        (img.height = this.canvas.height * 0.3);
+        : ((img.width = this.canvas.width * 0.9),
+          (img.height = this.canvas.height * 0.3));
 
       (img.tagName === "VIDEO" && !img.currentTime === 0) ||
       img.paused ||
