@@ -1,5 +1,20 @@
 const express = require("express");
 const app = express();
+const fs = require("fs");
+
+function jsonReader(filePath, cb) {
+  fs.readFile(filePath, "utf-8", (err, fileData) => {
+    if (err) {
+      return cb && cb(err);
+    }
+    try {
+      const object = JSON.parse(fileData);
+      return cb && cb(null, object);
+    } catch (err) {
+      return cb && cb(err);
+    }
+  });
+}
 
 //socket,io setup
 const http = require("http");
@@ -17,56 +32,97 @@ app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
 
-const songsBackEnd = [];
+let songsBackEnd = {};
+jsonReader("./songs-data/songs-data.json", (err, data) => {
+  if (err) {
+    console.log(err);
+  } else {
+    songsBackEnd = data;
+  }
+});
 const songMinDur = 30;
 
 io.on("connection", (socket) => {
-  console.log("user connected");
   socket.on("addSongToBackEnd", (song) => {
-    let songsWithSameNames = [...songsBackEnd].filter((backSong) => {
-      if (song.name === backSong.name) return song;
-    });
-    let songsWithSameData = [...songsBackEnd].filter((backSong) => {
-      if (song.data == backSong.data) return song;
-    });
-    if (songsWithSameNames.length === 0 && song.duration >= songMinDur) {
-      if (songsWithSameData.length === 0) {
-        songsBackEnd.push({
-          data: song.data,
+    if (
+      Object.keys(songsBackEnd).length > 0 &&
+      Object.keys(songsBackEnd).length < 16
+    ) {
+      if (!songsBackEnd[song.name] && song.duration > songMinDur) {
+        songsBackEnd[song.name] = {
+          data: song.data.toString("base64"),
           duration: song.duration,
           name: song.name,
           bestScore: 0,
           tempSore: 0,
-        });
+        };
+        fs.writeFile(
+          "./songs-data/songs-data.json",
+          JSON.stringify(songsBackEnd, null, 2),
+          (err) => {
+            if (err) {
+              console.log(err);
+            }
+          }
+        );
       }
+      console.log("samw song!");
+    } else {
+      songsBackEnd[song.name] = {
+        data: song.data.toString("base64"),
+        duration: song.duration,
+        name: song.name,
+        bestScore: 0,
+        tempSore: 0,
+      };
+      fs.writeFile(
+        "./songs-data/songs-data.json",
+        JSON.stringify(songsBackEnd, null, 2),
+        (err) => {
+          if (err) {
+            console.log(err);
+          }
+        }
+      );
     }
   });
   socket.on("getSongsData", () => {
-    const songsData = [...songsBackEnd].map((song) => {
-      song = {
-        name: song.name,
-        duration: song.duration,
-        bestScore: song.bestScore,
-      };
-      return song;
+    jsonReader("./songs-data/songs-data.json", (err, data) => {
+      if (err) {
+        console.log(err);
+      } else {
+        songsBackEnd = data;
+      }
     });
+    const songsData = Object.values(songsBackEnd);
     socket.emit("returnSongsData", songsData);
   });
 
   socket.on("sendSong", (songName) => {
-    songsBackEnd.forEach((song) => {
-      song.name === songName ? socket.emit("sendSong", song.data) : null;
-    });
+    socket.emit("sendSong", Buffer.from(songsBackEnd[songName].data, "base64"));
   });
 
   socket.on("incrementScore", ({ songName, isGameEnd }) => {
-    songsBackEnd.forEach((backSong) => {
-      backSong.name === songName ? backSong.tempSore++ : null;
-      backSong.tempSore > backSong.bestScore && isGameEnd
-        ? (backSong.bestScore = backSong.tempSore)
-        : null;
-      isGameEnd ? (backSong.tempSore = 0) : null;
-    });
+    if (songsBackEnd[songName]) {
+      songsBackEnd[songName].tempSore++;
+      if (
+        isGameEnd &&
+        songsBackEnd[songName].bestScore < songsBackEnd[songName].tempSore &&
+        songsBackEnd[songName].tempSore !== 0
+      ) {
+        songsBackEnd[songName].bestScore = songsBackEnd[songName].tempSore;
+        songsBackEnd[songName].tempSore = 0;
+        fs.writeFile(
+          "./songs-data/songs-data.json",
+          JSON.stringify(songsBackEnd, null, 2),
+          (err) => {
+            if (err) {
+              console.log(err);
+            }
+          }
+        );
+      }
+    }
   });
 });
 
