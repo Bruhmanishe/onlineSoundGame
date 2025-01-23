@@ -25,7 +25,7 @@ const io = new Server(server, {
   pingTimeout: 5000,
   maxHttpBufferSize: 1e8,
 });
-const port = 10000;
+const port = process.env.PORT || 3000;
 app.use(express.static("public"));
 
 app.get("/", (req, res) => {
